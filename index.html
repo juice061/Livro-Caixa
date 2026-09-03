@@ -581,6 +581,25 @@ function proximaDataMensalidade(m){
   return alvo;
 }
 
+function formatarDataExtrato(dateStr){
+  const ontemD = new Date(); ontemD.setDate(ontemD.getDate()-1);
+  const ontemStr = ontemD.toISOString().slice(0,10);
+  if (dateStr === hoje()) return "Hoje";
+  if (dateStr === ontemStr) return "Ontem";
+  const d = new Date(dateStr+"T00:00:00");
+  const mesmoAno = d.getFullYear() === new Date().getFullYear();
+  return d.toLocaleDateString("pt-BR", { weekday:"short", day:"2-digit", month:"long", year: mesmoAno?undefined:"numeric" });
+}
+function agruparPorData(lista){
+  const grupos = [];
+  let atual = null;
+  lista.forEach(t => {
+    if (!atual || atual.data !== t.date) { atual = { data:t.date, itens:[] }; grupos.push(atual); }
+    atual.itens.push(t);
+  });
+  return grupos;
+}
+
 /* ===================== débito automático das mensalidades vencidas ===================== */
 function processarCobrancasAutomaticas(dataAtual){
   const hojeD = new Date(); hojeD.setHours(0,0,0,0);
@@ -825,7 +844,7 @@ function LivroCaixa() {
     if(!data) return [];
     const meses={};
     data.transactions.forEach(t=>{ const mes=t.date?.slice(0,7)||"—"; if(!meses[mes]) meses[mes]={mes,ganhos:0,gastos:0}; meses[mes][t.type==="ganho"?"ganhos":"gastos"]+=t.amount; });
-    return Object.values(meses).sort((a,b)=>a.mes.localeCompare(b.mes)).slice(-6)
+    return Object.values(meses).sort((a,b)=>a.mes.localeCompare(b.mes))
       .map(m=>({...m,label:new Date(m.mes+"-02").toLocaleDateString("pt-BR",{month:"short"})}));
   },[data]);
   const prioridades = useMemo(()=>{
@@ -1068,24 +1087,48 @@ function Legenda({cor,label,pct}) {
   </div>;
 }
 
-function MiniBarChart({dados}) {
-  const max = Math.max(1, ...dados.flatMap(d=>[d.ganhos,d.gastos]));
-  return <div className="row" style={{alignItems:"flex-end",gap:16,height:180,paddingTop:10}}>
-    {dados.map((d,i)=>(
-      <div key={i} className="col" style={{alignItems:"center",flex:1,gap:6,height:"100%",justifyContent:"flex-end"}}>
-        <div className="row g1" style={{alignItems:"flex-end",height:140}}>
-          <div title={fmt(d.ganhos)} style={{width:14,borderRadius:"3px 3px 0 0",background:"#3A6B54",height:`${(d.ganhos/max)*100}%`}} />
-          <div title={fmt(d.gastos)} style={{width:14,borderRadius:"3px 3px 0 0",background:"#A13D3D",height:`${(d.gastos/max)*100}%`}} />
-        </div>
-        <span style={{fontSize:11,color:"#101820"}}>{d.label}</span>
-      </div>
+function PeriodoSeletor({valor, onChange}) {
+  const opcoes = [["3","3M"],["6","6M"],["12","12M"],["tudo","Tudo"]];
+  return <div className="row g1">
+    {opcoes.map(([v,l])=>(
+      <button key={v} style={{padding:"3px 9px",fontSize:11,background: valor===v?"#B08D3F":"rgba(16,24,32,.06)", color: valor===v?"#101820":"#7A7460"}} onClick={()=>onChange(v)}>{l}</button>
     ))}
   </div>;
 }
 
+function MiniBarChart({dados}) {
+  const [selecionado, setSelecionado] = useState(dados.length-1);
+  const idx = Math.min(selecionado, dados.length-1);
+  const max = Math.max(1, ...dados.flatMap(d=>[d.ganhos,d.gastos]));
+  const atual = dados[idx];
+  if (!atual) return null;
+  return <div>
+    <div className="row-between wrap g2" style={{marginBottom:12}}>
+      <span className="muted" style={{fontSize:13,fontWeight:600,color:"#101820"}}>{atual.label}</span>
+      <div className="row g3">
+        <span className="mono" style={{color:"#3A6B54",fontSize:13,fontWeight:700}}>+{fmt(atual.ganhos)}</span>
+        <span className="mono" style={{color:"#A13D3D",fontSize:13,fontWeight:700}}>−{fmt(atual.gastos)}</span>
+      </div>
+    </div>
+    <div className="row" style={{alignItems:"flex-end",gap:14,height:180,paddingTop:10,overflowX:"auto"}}>
+      {dados.map((d,i)=>(
+        <div key={i} className="col" style={{alignItems:"center",flex:"0 0 auto",minWidth:32,gap:6,height:"100%",justifyContent:"flex-end",cursor:"pointer",opacity: i===idx?1:.5}} onClick={()=>setSelecionado(i)}>
+          <div className="row g1" style={{alignItems:"flex-end",height:140}}>
+            <div style={{width:13,borderRadius:"3px 3px 0 0",background:"#3A6B54",height:`${(d.ganhos/max)*100}%`}} />
+            <div style={{width:13,borderRadius:"3px 3px 0 0",background:"#A13D3D",height:`${(d.gastos/max)*100}%`}} />
+          </div>
+          <span style={{fontSize:11,color:"#101820",fontWeight: i===idx?700:400}}>{d.label}</span>
+        </div>
+      ))}
+    </div>
+  </div>;
+}
+
 function LineChartPatrimonio({dados}) {
+  const [selecionado, setSelecionado] = useState(dados.length-1);
   if (dados.length < 2) return <p className="muted" style={{textAlign:"center", padding:"12px 0"}}>Continue registrando pra ver a evolução ao longo dos meses.</p>;
-  const w = 600, h = 160, padY = 18;
+  const idx = Math.min(selecionado, dados.length-1);
+  const w = 600, h = 170, padY = 20;
   const valores = dados.map(d=>d.patrimonio);
   const max = Math.max(1, ...valores);
   const min = Math.min(0, ...valores);
@@ -1095,16 +1138,29 @@ function LineChartPatrimonio({dados}) {
     const y = h - padY - ((d.patrimonio-min)/range)*(h-padY*2);
     return [x,y];
   });
+  const atual = dados[idx];
+  const primeiro = dados[0];
+  const variacao = round2(atual.patrimonio - primeiro.patrimonio);
   return (
-    <div style={{overflowX:"auto"}}>
-      <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{minWidth:360}}>
-        <polyline points={pontos.map(p=>p.join(",")).join(" ")} fill="none" stroke="#B08D3F" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-        {pontos.map(([x,y],i)=>(
-          <circle key={i} cx={x} cy={y} r="3.5" fill="#101820">
-            <title>{dados[i].label}: {fmt(dados[i].patrimonio)}</title>
-          </circle>
-        ))}
-      </svg>
+    <div>
+      <div className="row-between wrap g2" style={{marginBottom:10}}>
+        <div>
+          <span className="muted">{atual.label}</span>
+          <div className="mono" style={{fontSize:20,fontWeight:700,color:"#101820"}}>{fmt(atual.patrimonio)}</div>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <span className="muted">Variação no período</span>
+          <div className="mono" style={{fontWeight:700,fontSize:15, color: variacao>=0?"#3A6B54":"#A13D3D"}}>{variacao>=0?"+":""}{fmt(variacao)}</div>
+        </div>
+      </div>
+      <div style={{overflowX:"auto"}}>
+        <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{minWidth:360}}>
+          <polyline points={pontos.map(p=>p.join(",")).join(" ")} fill="none" stroke="#B08D3F" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+          {pontos.map(([x,y],i)=>(
+            <circle key={i} cx={x} cy={y} r={i===idx?5.5:3.5} fill={i===idx?"#B08D3F":"#101820"} style={{cursor:"pointer"}} onClick={()=>setSelecionado(i)} />
+          ))}
+        </svg>
+      </div>
       <div className="row-between" style={{fontSize:10,color:"#7A7460",padding:"0 10px"}}>
         <span>{dados[0].label}</span><span>{dados[dados.length-1].label}</span>
       </div>
@@ -1132,14 +1188,30 @@ function PrioridadesPainel({prioridades}) {
 function VisaoGeral({data, dadosGrafico, prioridades, evolucaoPatrimonio, totalInvestido}) {
   const ganhosTotais = data.transactions.filter(t=>t.type==="ganho").reduce((a,t)=>a+t.amount,0);
   const gastosTotais = data.transactions.filter(t=>t.type==="gasto").reduce((a,t)=>a+t.amount,0);
+  const [periodoPatrimonio, setPeriodoPatrimonio] = useState("6");
+  const [periodoFluxo, setPeriodoFluxo] = useState("6");
+  const dadosPatrimonioFiltrado = periodoPatrimonio==="tudo" ? evolucaoPatrimonio : evolucaoPatrimonio.slice(-parseInt(periodoPatrimonio));
+  const dadosFluxoFiltrado = periodoFluxo==="tudo" ? dadosGrafico : dadosGrafico.slice(-parseInt(periodoFluxo));
   return <div className="stack">
     <PrioridadesPainel prioridades={prioridades} />
     <div className="grid2">
       <Card accent="#3A6B54"><div style={{color:"#3A6B54",fontSize:12}}>📈 GANHOS</div><div className="mono" style={{fontSize:21,fontWeight:700}}>{fmt(ganhosTotais)}</div></Card>
       <Card accent="#A13D3D"><div style={{color:"#A13D3D",fontSize:12}}>📉 GASTOS</div><div className="mono" style={{fontSize:21,fontWeight:700}}>{fmt(gastosTotais)}</div></Card>
     </div>
-    {evolucaoPatrimonio && evolucaoPatrimonio.length>1 && <Card><SectionTitle sub="Reconstruído a partir do seu histórico de lançamentos e rendimentos.">Evolução do patrimônio</SectionTitle><LineChartPatrimonio dados={evolucaoPatrimonio} /></Card>}
-    {dadosGrafico.length>0 && <Card><SectionTitle>Ganhos x Gastos por mês</SectionTitle><MiniBarChart dados={dadosGrafico} /></Card>}
+    {evolucaoPatrimonio && evolucaoPatrimonio.length>1 && <Card>
+      <div className="row-between wrap g2" style={{marginBottom:4}}>
+        <SectionTitle sub="Reconstruído a partir do seu histórico de lançamentos e rendimentos. Toque num ponto pra ver o valor daquele mês.">Evolução do patrimônio</SectionTitle>
+        <PeriodoSeletor valor={periodoPatrimonio} onChange={setPeriodoPatrimonio} />
+      </div>
+      <LineChartPatrimonio dados={dadosPatrimonioFiltrado} />
+    </Card>}
+    {dadosGrafico.length>0 && <Card>
+      <div className="row-between wrap g2" style={{marginBottom:4}}>
+        <SectionTitle sub="Toque num mês pra ver os valores exatos.">Ganhos x Gastos por mês</SectionTitle>
+        <PeriodoSeletor valor={periodoFluxo} onChange={setPeriodoFluxo} />
+      </div>
+      <MiniBarChart dados={dadosFluxoFiltrado} />
+    </Card>}
     {data.metasFinanceiras.length>0 && <div>
       <SectionTitle light>Metas em andamento</SectionTitle>
       <div className="stack-sm">
@@ -1205,10 +1277,10 @@ function Lancamentos({data, addTransacao, delTransacao}) {
         ))}
       </div>
       <div className="grid2" style={{marginBottom:8}}>
-        <input type="number" placeholder="Valor" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} />
+        <input type="number" placeholder="Valor" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} onKeyDown={e=>e.key==="Enter"&&submit()} />
         <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{categoriasAtuais.map(c=><option key={c} value={c}>{c}</option>)}</select>
       </div>
-      <input className="wfull" style={{marginBottom:8}} placeholder="Descrição (opcional)" value={form.desc} onChange={e=>setForm({...form,desc:e.target.value})} />
+      <input className="wfull" style={{marginBottom:8}} placeholder="Descrição (opcional)" value={form.desc} onChange={e=>setForm({...form,desc:e.target.value})} onKeyDown={e=>e.key==="Enter"&&submit()} />
       <div className="row g2" style={{marginBottom:8}}>
         <button className="btn-ghost" onClick={()=>fileRef.current.click()}>📎 {anexoPreview? "Trocar foto" : "Anexar comprovante"}</button>
         {anexoPreview && <img src={anexoPreview} style={{height:38,width:38,borderRadius:8,objectFit:"cover"}} />}
@@ -1233,15 +1305,24 @@ function Lancamentos({data, addTransacao, delTransacao}) {
       {filtroCategoria!=="todas" && <p className="muted" style={{textAlign:"right",marginBottom:6}}>Total em <strong>{filtroCategoria}</strong>: <span className="mono" style={{color:"#EFEADA"}}>{fmt(totalFiltrado)}</span></p>}
       <Card style={{padding:8}}>
         {lista.length===0 && <p className="muted" style={{padding:12}}>Nenhum lançamento ainda.</p>}
-        {lista.map(t=>(
-          <div key={t.id} className="row g3" style={{padding:"8px",borderBottom:"1px solid rgba(16,24,32,.06)"}}>
-            <div style={{background: t.type==="ganho"?"rgba(58,107,84,.14)":"rgba(161,61,61,.14)", padding:6, borderRadius:6}}>{EMOJI_CATEGORIA[t.category]||"•"}</div>
-            <div className="flex1" style={{minWidth:0}}><div style={{fontSize:13,fontWeight:500}}>{t.desc||t.category}</div><div className="muted">{t.category} · {t.date}</div></div>
-            {t.anexo && <img src={t.anexo} onClick={()=>setVerFoto(t.anexo)} title="Ver comprovante" style={{width:30,height:30,borderRadius:6,objectFit:"cover",cursor:"pointer"}} />}
-            <div className="mono" style={{fontSize:13,fontWeight:700,color: t.type==="ganho"?"#3A6B54":"#A13D3D"}}>{t.type==="ganho"?"+":"−"}{fmt(t.amount)}</div>
-            <IconBtn onClick={()=>delTransacao(t.id)} title="Excluir">🗑️</IconBtn>
-          </div>
-        ))}
+        {agruparPorData(lista).map(grupo=>{
+          const saldoDia = grupo.itens.reduce((a,t)=>a+(t.type==="ganho"?t.amount:-t.amount),0);
+          return <div key={grupo.data}>
+            <div className="row-between" style={{padding:"10px 8px 6px"}}>
+              <span style={{fontSize:11,fontWeight:700,color:"#7A7460",textTransform:"uppercase",letterSpacing:.6}}>{formatarDataExtrato(grupo.data)}</span>
+              <span className="mono" style={{fontSize:11,fontWeight:700,color: saldoDia>=0?"#3A6B54":"#A13D3D"}}>{saldoDia>=0?"+":""}{fmt(saldoDia)}</span>
+            </div>
+            {grupo.itens.map(t=>(
+              <div key={t.id} className="row g3" style={{padding:"8px",borderBottom:"1px solid rgba(16,24,32,.06)"}}>
+                <div style={{background: t.type==="ganho"?"rgba(58,107,84,.14)":"rgba(161,61,61,.14)", padding:6, borderRadius:6}}>{EMOJI_CATEGORIA[t.category]||"•"}</div>
+                <div className="flex1" style={{minWidth:0}}><div style={{fontSize:13,fontWeight:500}}>{t.desc||t.category}</div><div className="muted">{t.category}</div></div>
+                {t.anexo && <img src={t.anexo} onClick={()=>setVerFoto(t.anexo)} title="Ver comprovante" style={{width:30,height:30,borderRadius:6,objectFit:"cover",cursor:"pointer"}} />}
+                <div className="mono" style={{fontSize:13,fontWeight:700,color: t.type==="ganho"?"#3A6B54":"#A13D3D"}}>{t.type==="ganho"?"+":"−"}{fmt(t.amount)}</div>
+                <IconBtn onClick={()=>delTransacao(t.id)} title="Excluir">🗑️</IconBtn>
+              </div>
+            ))}
+          </div>;
+        })}
       </Card>
     </div>
     {verFoto && (
