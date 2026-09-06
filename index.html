@@ -197,6 +197,8 @@ const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
 /* ===================== som (sintetizado, sem arquivos externos) ===================== */
 let somLigado = (typeof localStorage!=="undefined" && localStorage.getItem("livro-caixa-som")==="off") ? false : true;
+let valoresOcultos = (typeof localStorage!=="undefined" && localStorage.getItem("livro-caixa-valores-ocultos")==="on") ? true : false;
+function alternarVisibilidadeValores(){ valoresOcultos = !valoresOcultos; try{ localStorage.setItem("livro-caixa-valores-ocultos", valoresOcultos?"on":"off"); }catch(e){} return valoresOcultos; }
 let audioCtx = null;
 function getAudioCtx(){
   if (!audioCtx) { const Ctor = window.AudioContext||window.webkitAudioContext; if (!Ctor) return null; audioCtx = new Ctor(); }
@@ -400,7 +402,7 @@ const EMOJI_INVESTIMENTO = {
 };
 
 const hoje = () => new Date().toISOString().slice(0,10);
-const fmt = (v) => (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const fmt = (v) => valoresOcultos ? "R$ ••••••" : (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const round2 = (v) => Math.round((v+Number.EPSILON)*100)/100;
 const uid = (p="id") => `${p}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
 
@@ -765,6 +767,7 @@ function LivroCaixa() {
   const [saveState,setSaveState] = useState("idle");
   const [lastSaved,setLastSaved] = useState(null);
   const [somAtivo, setSomAtivo] = useState(somLigado);
+  const [valoresOcultosState, setValoresOcultosState] = useState(valoresOcultos);
   const firstLoad = useRef(true);
   const dataRef = useRef(null);
   dataRef.current = data;
@@ -1029,7 +1032,8 @@ function LivroCaixa() {
         <div className="balance-wrap">
           <div className="mono balance-glow" style={{fontSize:38,fontWeight:700,color: saldo>=0?"#6FB596":"#D07575", marginTop:12}}>
             {fmt(saldoAnimado)}
-            {delta && <span key={delta.id} className={"delta-pill "+(delta.valor>=0?"delta-up":"delta-down")}>{delta.valor>=0?"▲":"▼"} {fmt(Math.abs(delta.valor))}</span>}
+            <button className="icon-btn" style={{marginLeft:10,fontSize:18,verticalAlign:"middle"}} onClick={()=>setValoresOcultosState(alternarVisibilidadeValores())} title={valoresOcultosState?"Mostrar valores":"Ocultar valores"}>{valoresOcultosState?"🙈":"👁️"}</button>
+            {delta && !valoresOcultosState && <span key={delta.id} className={"delta-pill "+(delta.valor>=0?"delta-up":"delta-down")}>{delta.valor>=0?"▲":"▼"} {fmt(Math.abs(delta.valor))}</span>}
           </div>
         </div>
         <div className="row wrap g5" style={{marginTop:12,rowGap:4}}>
@@ -1056,7 +1060,7 @@ function LivroCaixa() {
         {tab==="mensal" && <Mensalidades lista={data.mensalidades} add={addMensal} upd={updMensal} del={delMensal} />}
         {tab==="noticias" && <Noticias />}
         {tab==="config" && <Configuracoes perfis={perfis} perfilAtivo={perfilAtivo} criarPerfil={criarPerfil} renomearPerfil={renomearPerfil} excluirPerfil={excluirPerfil} resetarPerfilAtual={resetarPerfilAtual}
-          exportarBackup={exportarBackup} importarBackup={importarBackup} fileInputRef={fileInputRef} somAtivo={somAtivo} setSomAtivo={setSomAtivo} />}
+          exportarBackup={exportarBackup} importarBackup={importarBackup} fileInputRef={fileInputRef} somAtivo={somAtivo} setSomAtivo={setSomAtivo} valoresOcultosState={valoresOcultosState} setValoresOcultosState={setValoresOcultosState} />}
       </div>
       <div className="app-footer">📒 Livro-Caixa Pessoal — seu dinheiro, suas regras.</div>
     </div>
@@ -1532,26 +1536,63 @@ function Orcamento({data, definirOrcamento}) {
 
 function Mensalidades({lista, add, upd, del}) {
   const [form,setForm] = useState({name:"",amount:"",dueDay:"",category:"Assinaturas"});
+  const [editandoId, setEditandoId] = useState(null);
+  const [editForm, setEditForm] = useState({});
   const submit = () => { if(!form.name||!form.amount) return; add({name:form.name,amount:parseFloat(form.amount),dueDay:parseInt(form.dueDay)||1,category:form.category}); setForm({name:"",amount:"",dueDay:"",category:"Assinaturas"}); toast(true,"Mensalidade criada."); };
   const total = lista.filter(m=>m.active).reduce((a,m)=>a+m.amount,0);
+
+  const iniciarEdicao = (m) => { setEditandoId(m.id); setEditForm({name:m.name, amount:String(m.amount), dueDay:String(m.dueDay), category:m.category||"Assinaturas"}); };
+  const salvarEdicao = (m) => {
+    const novoValor = parseFloat(editForm.amount);
+    const novoDia = Math.min(28, Math.max(1, parseInt(editForm.dueDay)||m.dueDay));
+    if (!editForm.name || isNaN(novoValor)) { toast(false,"Preencha nome e valor válidos."); return; }
+    const patch = { name: editForm.name, amount: novoValor, dueDay: novoDia, category: editForm.category };
+    if (novoDia !== m.dueDay) patch.proximaCobranca = proximaDataMensalidade({dueDay:novoDia}).toISOString().slice(0,10);
+    upd(m.id, patch);
+    setEditandoId(null);
+    toast(true,"Mensalidade atualizada.");
+  };
+
   return <div className="stack">
     <Card>
       <SectionTitle>Nova mensalidade</SectionTitle>
       <input className="wfull" style={{marginBottom:8}} placeholder="Nome (ex: Netflix, Academia)" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} />
-      <div className="row g2"><input className="flex1" type="number" placeholder="Valor" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} /><input style={{width:96}} type="number" placeholder="Dia venc." value={form.dueDay} onChange={e=>setForm({...form,dueDay:e.target.value})} /><button className="btn-primary" onClick={submit}>Criar</button></div>
+      <div className="grid2" style={{marginBottom:8}}>
+        <input type="number" placeholder="Valor" value={form.amount} onChange={e=>setForm({...form,amount:e.target.value})} />
+        <input type="number" min="1" max="28" placeholder="Dia venc." value={form.dueDay} onChange={e=>setForm({...form,dueDay:e.target.value})} />
+      </div>
+      <div className="row g2">
+        <select className="flex1" value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>{CATEGORIAS_GASTO.map(c=><option key={c} value={c}>{c}</option>)}</select>
+        <button className="btn-primary" onClick={submit}>Criar</button>
+      </div>
     </Card>
     <div className="row-between"><SectionTitle light>Recorrentes ativas</SectionTitle><span className="mono" style={{color:"#EFEADA",fontSize:14}}>{fmt(total)}/mês</span></div>
     {lista.length===0 && <p className="muted" style={{textAlign:"center"}}>Nenhuma mensalidade cadastrada.</p>}
     <Card style={{padding:8}}>
-      {[...lista].sort((a,b)=>a.dueDay-b.dueDay).map(m=>(
-        <div key={m.id} className="row g3" style={{padding:8,borderBottom:"1px solid rgba(16,24,32,.06)",opacity: m.active?1:.4}}>
+      {[...lista].sort((a,b)=>a.dueDay-b.dueDay).map(m=>{
+        if (editandoId===m.id) {
+          return <div key={m.id} style={{padding:10,borderBottom:"1px solid rgba(16,24,32,.06)"}}>
+            <input className="wfull" style={{marginBottom:6}} placeholder="Nome" value={editForm.name} onChange={e=>setEditForm({...editForm,name:e.target.value})} />
+            <div className="grid2" style={{marginBottom:6}}>
+              <input type="number" placeholder="Valor" value={editForm.amount} onChange={e=>setEditForm({...editForm,amount:e.target.value})} />
+              <input type="number" min="1" max="28" placeholder="Dia venc." value={editForm.dueDay} onChange={e=>setEditForm({...editForm,dueDay:e.target.value})} />
+            </div>
+            <select className="wfull" style={{marginBottom:8}} value={editForm.category} onChange={e=>setEditForm({...editForm,category:e.target.value})}>{CATEGORIAS_GASTO.map(c=><option key={c} value={c}>{c}</option>)}</select>
+            <div className="row g2">
+              <button className="btn-success flex1" onClick={()=>salvarEdicao(m)}>Salvar</button>
+              <button className="btn-ghost" onClick={()=>setEditandoId(null)}>Cancelar</button>
+            </div>
+          </div>;
+        }
+        return <div key={m.id} className="row g3" style={{padding:8,borderBottom:"1px solid rgba(16,24,32,.06)",opacity: m.active?1:.4}}>
           <div style={{background:"rgba(176,141,63,.15)",padding:6,borderRadius:6,minWidth:34,textAlign:"center"}}><span className="mono" style={{fontSize:11,color:"#B08D3F",fontWeight:700}}>D{m.dueDay}</span></div>
           <div className="flex1"><div style={{fontSize:13,fontWeight:500}}>{m.name}</div><div className="muted">{m.category}</div></div>
           <div className="mono" style={{fontSize:13,fontWeight:700}}>{fmt(m.amount)}</div>
+          <IconBtn onClick={()=>iniciarEdicao(m)} title="Editar">✏️</IconBtn>
           <button className="icon-btn" onClick={()=>upd(m.id,{active:!m.active})} title={m.active?"Pausar":"Reativar"}>{m.active?"✅":"❌"}</button>
           <IconBtn onClick={()=>del(m.id)} title="Excluir">🗑️</IconBtn>
-        </div>
-      ))}
+        </div>;
+      })}
     </Card>
   </div>;
 }
@@ -1755,7 +1796,7 @@ function Noticias(){
 }
 
 /* ===================== Configurações ===================== */
-function Configuracoes({perfis, perfilAtivo, criarPerfil, renomearPerfil, excluirPerfil, resetarPerfilAtual, exportarBackup, importarBackup, fileInputRef, somAtivo, setSomAtivo}) {
+function Configuracoes({perfis, perfilAtivo, criarPerfil, renomearPerfil, excluirPerfil, resetarPerfilAtual, exportarBackup, importarBackup, fileInputRef, somAtivo, setSomAtivo, valoresOcultosState, setValoresOcultosState}) {
   const [config, setConfigState] = useState(()=>lerConfig());
   const [nomeNovo, setNomeNovo] = useState("");
   const [editandoId, setEditandoId] = useState(null);
@@ -1805,7 +1846,10 @@ function Configuracoes({perfis, perfilAtivo, criarPerfil, renomearPerfil, exclui
 
     <Card>
       <SectionTitle>🔊 Preferências</SectionTitle>
-      <button className="btn-ghost wfull" onClick={()=>setSomAtivo(alternarSom())}>{somAtivo?"🔊 Som ligado":"🔇 Som desligado"}</button>
+      <div className="stack-sm">
+        <button className="btn-ghost wfull" onClick={()=>setSomAtivo(alternarSom())}>{somAtivo?"🔊 Som ligado":"🔇 Som desligado"}</button>
+        <button className="btn-ghost wfull" onClick={()=>setValoresOcultosState(alternarVisibilidadeValores())}>{valoresOcultosState?"🙈 Valores ocultos":"👁️ Valores visíveis"}</button>
+      </div>
     </Card>
 
     <Card>
