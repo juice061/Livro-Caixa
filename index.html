@@ -17,8 +17,20 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;700&display=swap');
   * { box-sizing: border-box; }
-  html,body { margin:0; padding:0; background:#0D141F; font-family:'Inter',sans-serif; }
-  body { background: radial-gradient(1200px 600px at 15% -10%, rgba(176,141,63,.14), transparent 60%), radial-gradient(900px 500px at 110% 10%, rgba(90,143,191,.10), transparent 55%), #0D141F; background-attachment:fixed; }
+  :root {
+    --bg-page:#0D141F; --bg-page-solid:#101820; --fg-onbg:#EFEADA; --fg-onbg-muted:#9B9480;
+    --tab-inactive-bg:rgba(239,234,218,.06); --tab-inactive-fg:#A8A18C; --tab-hover-bg:rgba(239,234,218,.13);
+    --profile-select-bg:rgba(239,234,218,.1); --profile-select-border:rgba(239,234,218,.2);
+    --border-onbg:rgba(239,234,218,.14); --footer-fg:#5C6B63;
+  }
+  body.tema-claro {
+    --bg-page:#EDE7D8; --bg-page-solid:#F3EEE1; --fg-onbg:#101820; --fg-onbg-muted:#6B6455;
+    --tab-inactive-bg:rgba(16,24,32,.05); --tab-inactive-fg:#7A7460; --tab-hover-bg:rgba(16,24,32,.08);
+    --profile-select-bg:rgba(16,24,32,.05); --profile-select-border:rgba(16,24,32,.15);
+    --border-onbg:rgba(16,24,32,.12); --footer-fg:#8A8270;
+  }
+  html,body { margin:0; padding:0; background:var(--bg-page); font-family:'Inter',sans-serif; }
+  body { background: radial-gradient(1200px 600px at 15% -10%, rgba(176,141,63,.14), transparent 60%), radial-gradient(900px 500px at 110% 10%, rgba(90,143,191,.10), transparent 55%), var(--bg-page); background-attachment:fixed; transition:background-color .3s ease; }
   #root { min-height:100vh; }
   ::selection { background:#B08D3F; color:#101820; }
   input,select,textarea { font-family:inherit; font-size:16px; }
@@ -42,8 +54,8 @@
   .wfull { width:100%; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   .tabs { display:flex; gap:4px; overflow-x:auto; padding-bottom:4px; }
-  .tab-btn { padding:9px 14px; font-size:13px; font-weight:600; border-radius:10px 10px 0 0; border-top:2px solid transparent; white-space:nowrap; background:rgba(239,234,218,.06); color:#A8A18C; transition:all .2s ease; }
-  .tab-btn:hover { background:rgba(239,234,218,.13); color:#EFEADA; }
+  .tab-btn { padding:9px 14px; font-size:13px; font-weight:600; border-radius:10px 10px 0 0; border-top:2px solid transparent; white-space:nowrap; background:var(--tab-inactive-bg); color:var(--tab-inactive-fg); transition:all .2s ease; }
+  .tab-btn:hover { background:var(--tab-hover-bg); color:var(--fg-onbg); }
   .tab-btn.active { background:#EFEADA; color:#101820; border-top:2px solid #B08D3F; transform:translateY(-2px); box-shadow:0 -4px 14px rgba(0,0,0,.18); }
   .card { background:#EFEADA; border-radius:14px; box-shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.10); padding:18px; position:relative; transition:transform .2s ease, box-shadow .2s ease; }
   .card::before { content:""; position:absolute; top:0; left:16px; right:16px; height:1px; background:linear-gradient(90deg, transparent, rgba(176,141,63,.45), transparent); }
@@ -63,7 +75,7 @@
   .progress > div { height:100%; transition:width .6s cubic-bezier(.22,1,.36,1); background-size:200% 100%; animation:shimmer 2.4s linear infinite; }
   @keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
   .serif { font-family:'Fraunces', serif; font-weight:700; color:#101820; }
-  .mono { font-family:'IBM Plex Mono', monospace; }
+  .mono { font-family:'IBM Plex Mono', monospace; font-variant-numeric:tabular-nums; }
   .muted { color:#7A7460; font-size:12px; }
   .stamp { position:absolute; top:-8px; right:-8px; color:#A13D3D; border:3px double #A13D3D; padding:3px 10px; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:11px; letter-spacing:1px; transform:rotate(-8deg); opacity:.85; background:rgba(239,234,218,.7); mix-blend-mode:multiply; pointer-events:none; animation:stampIn .4s cubic-bezier(.34,1.56,.64,1); }
   @keyframes stampIn { from{ transform:rotate(-8deg) scale(0); opacity:0; } to{ transform:rotate(-8deg) scale(1); opacity:.85; } }
@@ -94,10 +106,17 @@
   .app-shell { position:relative; z-index:1; }
   .balance-wrap { position:relative; display:inline-block; }
   .balance-wrap::before { content:""; position:absolute; inset:-26px -60px; background:radial-gradient(circle, rgba(111,181,150,.30), transparent 70%); filter:blur(18px); z-index:-1; animation:orbPulse 3.6s ease-in-out infinite; }
+  .eye-toggle { background:transparent; padding:6px; border-radius:8px; color:#7A8471; display:inline-flex; align-items:center; justify-content:center; opacity:.7; }
+  .eye-toggle:hover { opacity:1; background:rgba(239,234,218,.08); filter:none; transform:none; }
+  @keyframes skeletonShimmer { 0%{background-position:-300% 0;} 100%{background-position:300% 0;} }
+  .skeleton { background:linear-gradient(90deg, rgba(239,234,218,.05) 25%, rgba(239,234,218,.13) 37%, rgba(239,234,218,.05) 63%); background-size:400% 100%; animation:skeletonShimmer 1.6s ease-in-out infinite; border-radius:10px; }
+  .header-compacto { position:fixed; top:0; left:0; right:0; z-index:60; background:var(--bg-page-solid); border-bottom:1px solid var(--border-onbg); padding:10px 20px; display:flex; align-items:center; justify-content:space-between; transform:translateY(-100%); transition:transform .25s ease; box-shadow:0 4px 14px rgba(0,0,0,.25); }
+  .header-compacto.visivel { transform:translateY(0); }
+  @media (pointer:coarse) { .acoes-inline-desktop { display:none; } }
   @keyframes orbPulse { 0%,100%{ opacity:.55; transform:scale(1);} 50%{ opacity:1; transform:scale(1.1);} }
   .title-underline { height:3px; width:64px; border-radius:2px; margin-top:8px; background:linear-gradient(90deg,#B08D3F,#5A8FBF,#3A6B54,#B08D3F); background-size:300% 100%; animation:gradientMove 5s linear infinite; }
   @keyframes gradientMove { to { background-position:300% 0; } }
-  .profile-select { background:rgba(239,234,218,.1); border:1px solid rgba(239,234,218,.2); color:#EFEADA; border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600; }
+  .profile-select { background:var(--profile-select-bg); border:1px solid var(--profile-select-border); color:var(--fg-onbg); border-radius:8px; padding:6px 10px; font-size:12px; font-weight:600; }
   .chat-box { max-height:360px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:6px 2px; }
   .chat-msg { padding:10px 14px; border-radius:14px; font-size:13px; line-height:1.55; max-width:88%; animation:fadeSlideIn .25s ease; white-space:pre-wrap; }
   .chat-ia { background:rgba(16,24,32,.06); color:#101820; align-self:flex-start; border-bottom-left-radius:3px; }
@@ -126,7 +145,7 @@
   .delta-down { background:rgba(208,117,117,.18); color:#D07575; }
   @keyframes deltaIn { from{ opacity:0; transform:translateY(4px) scale(.8);} to{ opacity:1; transform:translateY(0) scale(1);} }
   @keyframes deltaOut { to{ opacity:0; transform:translateY(-6px);} }
-  .app-footer { text-align:center; padding:28px 0 8px; color:#5C6B63; font-size:11px; letter-spacing:.5px; }
+  .app-footer { text-align:center; padding:28px 0 8px; color:var(--footer-fg); font-size:11px; letter-spacing:.5px; }
   .section-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#B08D3F; margin-right:8px; }
   .tab-btn { letter-spacing:.2px; }
 </style>
@@ -199,6 +218,8 @@ const { useState, useEffect, useMemo, useRef, useCallback } = React;
 let somLigado = (typeof localStorage!=="undefined" && localStorage.getItem("livro-caixa-som")==="off") ? false : true;
 let valoresOcultos = (typeof localStorage!=="undefined" && localStorage.getItem("livro-caixa-valores-ocultos")==="on") ? true : false;
 function alternarVisibilidadeValores(){ valoresOcultos = !valoresOcultos; try{ localStorage.setItem("livro-caixa-valores-ocultos", valoresOcultos?"on":"off"); }catch(e){} return valoresOcultos; }
+let temaClaro = (typeof localStorage!=="undefined" && localStorage.getItem("livro-caixa-tema")==="claro");
+function alternarTema(){ temaClaro = !temaClaro; try{ localStorage.setItem("livro-caixa-tema", temaClaro?"claro":"escuro"); }catch(e){} return temaClaro; }
 let audioCtx = null;
 function getAudioCtx(){
   if (!audioCtx) { const Ctor = window.AudioContext||window.webkitAudioContext; if (!Ctor) return null; audioCtx = new Ctor(); }
@@ -662,12 +683,12 @@ function Progress({value,max,color="#3A6B54"}) {
 function PercentTag({value, color="#101820"}) { return <span className="mono" style={{fontSize:12,fontWeight:700,color}}>{Math.round(value)}%</span>; }
 function SectionTitle({children, sub, light}) {
   return <div style={{marginBottom:12}}>
-    <h2 className="serif" style={{fontSize:19,margin:0,color: light?"#EFEADA":"#101820"}}><span className="section-dot"></span>{children}</h2>
-    {sub && <p style={{marginTop:4,fontSize:12,color: light?"#9B9480":"#7A7460"}}>{sub}</p>}
+    <h2 className="serif" style={{fontSize:19,margin:0,color: light?"var(--fg-onbg)":"#101820"}}><span className="section-dot"></span>{children}</h2>
+    {sub && <p style={{marginTop:4,fontSize:12,color: light?"var(--fg-onbg-muted)":"#7A7460"}}>{sub}</p>}
   </div>;
 }
 function IconBtn({onClick,title,children}) { return <button className="icon-btn" onClick={onClick} title={title}>{children}</button>; }
-function Spinner(){ return <span className="spin">⏳</span>; }
+function Spinner(){ return <Icone tipo="carregando" size={14} />; }
 
 function Logo({size=32}) {
   return (
@@ -678,6 +699,109 @@ function Logo({size=32}) {
       <text x="17.3" y="17.9" fontSize="4.4" fontFamily="'IBM Plex Mono',monospace" textAnchor="middle" fill="#101820" fontWeight="700">$</text>
     </svg>
   );
+}
+
+function IconeOlho({aberto, size=17}) {
+  return aberto ? (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  ) : (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M3.5 3.5l17 17M10.6 10.7a3 3 0 0 0 4.2 4.2M7.4 7.5C4.7 9.1 2 12 2 12s3.6 7 10 7c1.7 0 3.2-.4 4.5-1.1M16.7 16.8C19.4 15.2 22 12 22 12s-1.1-2.2-3-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function Icone({tipo, size=16, color="currentColor"}) {
+  const p = { width:size, height:size, viewBox:"0 0 24 24", fill:"none", style:{display:"block"} };
+  if (tipo==="lixeira") return <svg {...p}><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M10 11v6M14 11v6" stroke={color} strokeWidth="1.6" strokeLinecap="round"/></svg>;
+  if (tipo==="lapis") return <svg {...p}><path d="M4 20l1-4L15.5 5.5a1.5 1.5 0 0 1 2 0l1 1a1.5 1.5 0 0 1 0 2L8 19l-4 1Z" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/><path d="M14 7l3 3" stroke={color} strokeWidth="1.6"/></svg>;
+  if (tipo==="check") return <svg {...p}><circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.6"/><path d="M8 12.3l2.6 2.6L16 9.3" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  if (tipo==="x") return <svg {...p}><circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.6"/><path d="M9.2 9.2l5.6 5.6M14.8 9.2l-5.6 5.6" stroke={color} strokeWidth="1.8" strokeLinecap="round"/></svg>;
+  if (tipo==="fechar") return <svg {...p}><path d="M6 6l12 12M18 6L6 18" stroke={color} strokeWidth="1.8" strokeLinecap="round"/></svg>;
+  if (tipo==="repetir") return <svg {...p}><path d="M4 12a8 8 0 0 1 13.9-5.4L20 8.3M20 4.3v4h-4" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M20 12a8 8 0 0 1-13.9 5.4L4 15.7M4 19.7v-4h4" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  if (tipo==="clipe") return <svg {...p}><path d="M8 12.5l6.2-6.2a3.3 3.3 0 0 1 4.6 4.7l-7.6 7.6a2 2 0 0 1-2.9-2.8L15 9" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>;
+  if (tipo==="nuvem") return <svg {...p}><path d="M7 18a4 4 0 0 1-.4-8 5 5 0 0 1 9.6-1.9A4.5 4.5 0 0 1 17.5 17H7Z" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/></svg>;
+  if (tipo==="disco") return <svg {...p}><path d="M5 4h11l3 3v13H5V4Z" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/><path d="M8 4v5h7V4M8 20v-6h8v6" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/></svg>;
+  if (tipo==="alerta") return <svg {...p}><path d="M12 4.5l8.5 15h-17L12 4.5Z" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/><path d="M12 10v4M12 17h.01" stroke={color} strokeWidth="1.8" strokeLinecap="round"/></svg>;
+  if (tipo==="carregando") return <svg {...p} className="spin"><circle cx="12" cy="12" r="9" stroke={color} strokeOpacity="0.2" strokeWidth="2.2"/><path d="M21 12a9 9 0 0 0-9-9" stroke={color} strokeWidth="2.2" strokeLinecap="round"/></svg>;
+  if (tipo==="sol") return <svg {...p}><circle cx="12" cy="12" r="4.2" stroke={color} strokeWidth="1.6"/><path d="M12 2.5v2.5M12 19v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2.5 12h2.5M19 12h2.5M4.2 19.8L6 18M18 6l1.8-1.8" stroke={color} strokeWidth="1.6" strokeLinecap="round"/></svg>;
+  if (tipo==="lua") return <svg {...p}><path d="M20 14.2A8.2 8.2 0 1 1 9.8 4 6.7 6.7 0 0 0 20 14.2Z" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/></svg>;
+  return null;
+}
+
+function ResumoMensalModal({resumo, onFechar}) {
+  const positivo = resumo.saldoMes >= 0;
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(13,20,31,.9)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div className="card-pop" style={{background:"#EFEADA",borderRadius:18,padding:"30px 26px",maxWidth:400,width:"100%",textAlign:"center",position:"relative"}}>
+        <div className="section-dot" style={{margin:"0 auto 10px"}}></div>
+        <p className="muted" style={{textTransform:"uppercase",letterSpacing:1,fontWeight:700}}>Fechamento de {resumo.label}</p>
+        <div className="mono" style={{fontSize:34,fontWeight:700,color: positivo?"#3A6B54":"#A13D3D",margin:"10px 0"}}>{positivo?"+":""}{fmt(resumo.saldoMes)}</div>
+        <p className="muted" style={{marginBottom:20}}>{positivo?"Você fechou o mês no azul." : "Você gastou mais do que ganhou nesse mês."}</p>
+        <div className="grid2" style={{marginBottom:16}}>
+          <div style={{background:"rgba(58,107,84,.10)",borderRadius:10,padding:12}}>
+            <div className="muted">Ganhos</div>
+            <div className="mono" style={{fontWeight:700,color:"#3A6B54"}}>{fmt(resumo.ganhos)}</div>
+          </div>
+          <div style={{background:"rgba(161,61,61,.10)",borderRadius:10,padding:12}}>
+            <div className="muted">Gastos</div>
+            <div className="mono" style={{fontWeight:700,color:"#A13D3D"}}>{fmt(resumo.gastos)}</div>
+          </div>
+        </div>
+        {resumo.maiorCategoria && <p className="muted" style={{marginBottom:20}}>Sua maior categoria de gasto foi <strong style={{color:"#101820"}}>{EMOJI_CATEGORIA[resumo.maiorCategoria]||""} {resumo.maiorCategoria}</strong> ({fmt(resumo.maiorValor)}).</p>}
+        <button className="btn-primary wfull" onClick={onFechar}>Entendi</button>
+      </div>
+    </div>
+  );
+}
+
+function SwipeableRow({children, acoes}) {
+  const [offset, setOffset] = useState(0);
+  const arrastando = useRef(false);
+  const inicioX = useRef(0);
+  const offsetInicio = useRef(0);
+  const largura = acoes.length * 44;
+
+  const onTouchStart = (e) => { arrastando.current = true; inicioX.current = e.touches[0].clientX; offsetInicio.current = offset; };
+  const onTouchMove = (e) => {
+    if (!arrastando.current) return;
+    const dx = e.touches[0].clientX - inicioX.current;
+    let novo = offsetInicio.current + dx;
+    novo = Math.max(-largura, Math.min(0, novo));
+    setOffset(novo);
+  };
+  const onTouchEnd = () => { arrastando.current = false; setOffset(offset < -largura/2 ? -largura : 0); };
+
+  return (
+    <div className="swipe-row" style={{position:"relative", overflow:"hidden"}}>
+      <div style={{position:"absolute", top:0, bottom:0, right:0, display:"flex", width:largura}}>
+        {acoes.map((a,i)=><div key={i} style={{width:44, display:"flex", alignItems:"center", justifyContent:"center"}}>{a}</div>)}
+      </div>
+      <div
+        className="swipe-row-content"
+        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}
+        style={{transform:`translateX(${offset}px)`, transition: arrastando.current?"none":"transform .2s ease", background:"#EFEADA", position:"relative", zIndex:1}}
+        onClick={()=>{ if(offset!==0) setOffset(0); }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({texto}) {
+  return <div className="col g2" style={{alignItems:"center", padding:"26px 12px", textAlign:"center"}}>
+    <svg width="58" height="58" viewBox="0 0 64 64" fill="none">
+      <rect x="9" y="13" width="46" height="40" rx="5" stroke="#B0A98C" strokeWidth="2"/>
+      <path d="M17 23h22M17 31h30M17 39h18" stroke="#B0A98C" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="45" cy="45" r="9" fill="#101820"/>
+      <path d="M42 45h6M45 42v6" stroke="#B0A98C" strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+    <p className="muted" style={{marginTop:2}}>{texto}</p>
+  </div>;
 }
 
 function AporteBox({item, atual, saldo, tipo, contribuir, resgatar, labelGuardar="Guardar"}) {
@@ -755,7 +879,7 @@ function RendimentoBox({inv, registrarRendimento}) {
 }
 
 /* ===================== app ===================== */
-const dadosVazios = { transactions:[], metasFinanceiras:[], metasMateriais:[], mensalidades:[], investimentos:[], orcamentos:{} };
+const dadosVazios = { transactions:[], metasFinanceiras:[], metasMateriais:[], mensalidades:[], investimentos:[], orcamentos:{}, ultimoFechamentoVisto:null };
 
 function LivroCaixa() {
   const [perfis, setPerfis] = useState([]);
@@ -768,6 +892,16 @@ function LivroCaixa() {
   const [lastSaved,setLastSaved] = useState(null);
   const [somAtivo, setSomAtivo] = useState(somLigado);
   const [valoresOcultosState, setValoresOcultosState] = useState(valoresOcultos);
+  const [temaClaroState, setTemaClaroState] = useState(temaClaro);
+  useEffect(()=>{ document.body.classList.toggle("tema-claro", temaClaroState); },[temaClaroState]);
+  const [scrollY, setScrollY] = useState(0);
+  const [resumoMensalPendente, setResumoMensalPendente] = useState(null);
+
+  useEffect(()=>{
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, {passive:true});
+    return () => window.removeEventListener("scroll", onScroll);
+  },[]);
   const firstLoad = useRef(true);
   const dataRef = useRef(null);
   dataRef.current = data;
@@ -804,6 +938,23 @@ function LivroCaixa() {
         setTimeout(()=> toast(true, `💳 Cobrança automática: ${processado.resumo.join(", ")}.`), 500);
       }
       setData(processado.data); setLoading(false);
+
+      const mesAnteriorD = new Date(); mesAnteriorD.setDate(1); mesAnteriorD.setMonth(mesAnteriorD.getMonth()-1);
+      const mesAnterior = mesAnteriorD.toISOString().slice(0,7);
+      const transacoesMesAnterior = processado.data.transactions.filter(t=>t.date.slice(0,7)===mesAnterior);
+      if (transacoesMesAnterior.length && processado.data.ultimoFechamentoVisto !== mesAnterior) {
+        const ganhosMes = transacoesMesAnterior.filter(t=>t.type==="ganho").reduce((a,t)=>a+t.amount,0);
+        const gastosMes = transacoesMesAnterior.filter(t=>t.type==="gasto").reduce((a,t)=>a+t.amount,0);
+        const porCategoria = {};
+        transacoesMesAnterior.filter(t=>t.type==="gasto").forEach(t=>{ porCategoria[t.category]=(porCategoria[t.category]||0)+t.amount; });
+        const maior = Object.entries(porCategoria).sort((a,b)=>b[1]-a[1])[0];
+        setResumoMensalPendente({
+          mes: mesAnterior,
+          label: mesAnteriorD.toLocaleDateString("pt-BR",{month:"long",year:"numeric"}),
+          ganhos: ganhosMes, gastos: gastosMes, saldoMes: round2(ganhosMes-gastosMes),
+          maiorCategoria: maior?maior[0]:null, maiorValor: maior?maior[1]:0
+        });
+      }
     })();
   },[perfilAtivo]);
 
@@ -867,10 +1018,26 @@ function LivroCaixa() {
 
   const evolucaoPatrimonio = useMemo(()=> !data ? [] : calcularEvolucaoPatrimonio(data), [data]);
 
-  if (!perfisProntos || loading || !data) return <div className="col g3" style={{minHeight:"100vh",justifyContent:"center",alignItems:"center",background:"#101820"}}><Logo size={40} /><span style={{fontSize:22}} className="spin">⏳</span></div>;
+  if (!perfisProntos || loading || !data) return (
+    <div style={{minHeight:"100vh",background:"#101820",padding:"24px 16px"}}>
+      <div style={{maxWidth:800,margin:"0 auto"}}>
+        <div className="row g2" style={{marginBottom:20,alignItems:"center"}}><Logo size={26} /><div className="skeleton" style={{height:14,width:120}} /></div>
+        <div className="skeleton" style={{height:30,width:200,marginBottom:10}} />
+        <div className="skeleton" style={{height:44,width:220,marginBottom:20}} />
+        <div className="row g2" style={{marginBottom:20}}>
+          <div className="skeleton" style={{height:64,flex:1}} />
+          <div className="skeleton" style={{height:64,flex:1}} />
+        </div>
+        <div className="skeleton" style={{height:36,width:"100%",marginBottom:20}} />
+        <div className="skeleton" style={{height:170,marginBottom:16}} />
+        <div className="skeleton" style={{height:110}} />
+      </div>
+    </div>
+  );
 
   const addTransacao = (t)=> setData(d=>({...d, transactions:[{...t,id:uid("t")},...d.transactions]}));
   const delTransacao = (id)=> setData(d=>({...d, transactions:d.transactions.filter(t=>t.id!==id)}));
+  const editarTransacao = (id,patch)=> setData(d=>({...d, transactions:d.transactions.map(t=>t.id===id?{...t,...patch}:t)}));
   const addMetaFin = (m)=> setData(d=>({...d, metasFinanceiras:[...d.metasFinanceiras,{...m,id:uid("mf")}]}));
   const updMetaFin = (id,patch)=> setData(d=>({...d, metasFinanceiras:d.metasFinanceiras.map(m=>m.id===id?{...m,...patch}:m)}));
   const delMetaFinRaw = (id)=> setData(d=>({...d, metasFinanceiras:d.metasFinanceiras.filter(m=>m.id!==id)}));
@@ -889,6 +1056,11 @@ function LivroCaixa() {
       if (valor===null) delete orcamentos[categoria]; else orcamentos[categoria]=valor;
       return {...d, orcamentos};
     });
+  }
+  function fecharResumoMensal(){
+    if (!resumoMensalPendente) return;
+    setData(d=>({...d, ultimoFechamentoVisto: resumoMensalPendente.mes}));
+    setResumoMensalPendente(null);
   }
 
   function contribuir(item,valor,tipo){
@@ -1004,23 +1176,30 @@ function LivroCaixa() {
   ];
 
   return <div style={{minHeight:"100vh",position:"relative"}}>
+    <div className={"header-compacto"+(scrollY>200?" visivel":"")}>
+      <div className="row g2" style={{alignItems:"center"}}>
+        <Logo size={20} />
+        <span className="mono" style={{fontWeight:700, fontSize:15, color: saldo>=0?"#6FB596":"#D07575"}}>{fmt(saldo)}</span>
+      </div>
+      <span style={{fontSize:16}}>{perfis.find(p=>p.id===perfilAtivo)?.emoji || "💰"}</span>
+    </div>
     <div className="ambient"><div className="blob blob1"/><div className="blob blob2"/><div className="blob blob3"/></div>
     <div className="app-shell" style={{maxWidth:800, margin:"0 auto", padding:"24px 16px"}}>
 
       <div style={{borderBottom:"1px solid rgba(239,234,218,.14)", paddingBottom:22, marginBottom:24}}>
         <div className="row-between" style={{marginBottom:8}}>
-          <div className="row g2"><Logo size={26} /><span className="serif" style={{color:"#EFEADA",fontSize:16,fontWeight:700}}>Livro-Caixa</span><span className="mono" style={{color:"#B08D3F",fontSize:10,letterSpacing:2,marginLeft:2}}>PESSOAL</span></div>
+          <div className="row g2"><Logo size={26} /><span className="serif" style={{color:"var(--fg-onbg)",fontSize:16,fontWeight:700}}>Livro-Caixa</span><span className="mono" style={{color:"#B08D3F",fontSize:10,letterSpacing:2,marginLeft:2}}>PESSOAL</span></div>
           <div className="row g2" style={{fontSize:12,color:"#7A8471"}}>
-            {saveState==="saving" && <><Spinner/> sincronizando…</>}
-            {saveState==="saved" && <span style={{color:"#5C9E82"}}>☁️ sincronizado às {lastSaved?.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</span>}
-            {saveState==="saved-local" && <span style={{color:"#B08D3F"}}>💾 salvo só neste aparelho (sem internet)</span>}
-            {saveState==="error" && <span style={{color:"#D07575"}}>⚠️ não salvou</span>}
+            {saveState==="saving" && <span className="row g1" style={{alignItems:"center"}}><Icone tipo="carregando" size={12} /> sincronizando…</span>}
+            {saveState==="saved" && <span className="row g1" style={{alignItems:"center",color:"#5C9E82"}}><Icone tipo="nuvem" size={13} /> sincronizado às {lastSaved?.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</span>}
+            {saveState==="saved-local" && <span className="row g1" style={{alignItems:"center",color:"#B08D3F"}}><Icone tipo="disco" size={13} /> salvo só neste aparelho (sem internet)</span>}
+            {saveState==="error" && <span className="row g1" style={{alignItems:"center",color:"#D07575"}}><Icone tipo="alerta" size={13} /> não salvou</span>}
           </div>
         </div>
 
         <div className="row-between wrap g2" style={{marginBottom:4}}>
           <div>
-            <h1 className="serif" style={{fontSize:30,color:"#EFEADA",margin:0}}>Saldo disponível</h1>
+            <h1 className="serif" style={{fontSize:30,color:"var(--fg-onbg)",margin:0}}>Saldo disponível</h1>
             <div className="title-underline"></div>
           </div>
           <select className="profile-select" value={perfilAtivo} onChange={(e)=>{ if(e.target.value==="__novo__"){ const nome=window.prompt("Nome da nova conta (ex: Filho, Reserva conjunta):"); if(nome && nome.trim()) criarPerfil(nome.trim()); } else setPerfilAtivo(e.target.value); }}>
@@ -1030,17 +1209,19 @@ function LivroCaixa() {
         </div>
 
         <div className="balance-wrap">
-          <div className="mono balance-glow" style={{fontSize:38,fontWeight:700,color: saldo>=0?"#6FB596":"#D07575", marginTop:12}}>
-            {fmt(saldoAnimado)}
-            <button className="icon-btn" style={{marginLeft:10,fontSize:18,verticalAlign:"middle"}} onClick={()=>setValoresOcultosState(alternarVisibilidadeValores())} title={valoresOcultosState?"Mostrar valores":"Ocultar valores"}>{valoresOcultosState?"🙈":"👁️"}</button>
-            {delta && !valoresOcultosState && <span key={delta.id} className={"delta-pill "+(delta.valor>=0?"delta-up":"delta-down")}>{delta.valor>=0?"▲":"▼"} {fmt(Math.abs(delta.valor))}</span>}
+          <div className="row g2" style={{alignItems:"center",marginTop:12}}>
+            <div className="mono balance-glow" style={{fontSize:38,fontWeight:700,color: saldo>=0?"#6FB596":"#D07575"}}>{fmt(saldoAnimado)}</div>
+            <button className="eye-toggle" onClick={()=>setValoresOcultosState(alternarVisibilidadeValores())} title={valoresOcultosState?"Mostrar valores":"Ocultar valores"}>
+              <IconeOlho aberto={!valoresOcultosState} />
+            </button>
           </div>
+          {delta && !valoresOcultosState && <div style={{marginTop:4}}><span key={delta.id} className={"delta-pill "+(delta.valor>=0?"delta-up":"delta-down")}>{delta.valor>=0?"▲":"▼"} {fmt(Math.abs(delta.valor))}</span></div>}
         </div>
         <div className="row wrap g5" style={{marginTop:12,rowGap:4}}>
-          <div style={{fontSize:12,color:"#9B9480"}}>Reservado em metas <span className="mono" style={{color:"#EFEADA",marginLeft:4}}>{fmt(totalReservado)}</span></div>
-          <div style={{fontSize:12,color:"#9B9480"}}>Investido <span className="mono" style={{color:"#EFEADA",marginLeft:4}}>{fmt(totalInvestido)}</span></div>
-          <div style={{fontSize:12,color:"#9B9480"}}>Patrimônio total <span className="mono" style={{color:"#EFEADA",marginLeft:4}}>{fmt(patrimonioTotal)}</span></div>
-          {totalMensal>0 && <div style={{fontSize:12,color:"#9B9480"}}>Mensalidades ativas <span className="mono" style={{color:"#EFEADA",marginLeft:4}}>{fmt(totalMensal)}/mês</span></div>}
+          <div style={{fontSize:12,color:"var(--fg-onbg-muted)"}}>Reservado em metas <span className="mono" style={{color:"var(--fg-onbg)",marginLeft:4}}>{fmt(totalReservado)}</span></div>
+          <div style={{fontSize:12,color:"var(--fg-onbg-muted)"}}>Investido <span className="mono" style={{color:"var(--fg-onbg)",marginLeft:4}}>{fmt(totalInvestido)}</span></div>
+          <div style={{fontSize:12,color:"var(--fg-onbg-muted)"}}>Patrimônio total <span className="mono" style={{color:"var(--fg-onbg)",marginLeft:4}}>{fmt(patrimonioTotal)}</span></div>
+          {totalMensal>0 && <div style={{fontSize:12,color:"var(--fg-onbg-muted)"}}>Mensalidades ativas <span className="mono" style={{color:"var(--fg-onbg)",marginLeft:4}}>{fmt(totalMensal)}/mês</span></div>}
         </div>
 
         {patrimonioTotal>0 && <DistribuicaoBar saldo={saldo} totalReservado={totalReservado} totalInvestido={totalInvestido} patrimonioTotal={patrimonioTotal} />}
@@ -1052,19 +1233,20 @@ function LivroCaixa() {
 
       <div className="tab-content" key={tab+perfilAtivo}>
         {tab==="visao" && <VisaoGeral data={data} dadosGrafico={dadosGrafico} prioridades={prioridades} evolucaoPatrimonio={evolucaoPatrimonio} totalInvestido={totalInvestido} />}
-        {tab==="lancamentos" && <Lancamentos data={data} addTransacao={addTransacao} delTransacao={delTransacao} />}
+        {tab==="lancamentos" && <Lancamentos data={data} addTransacao={addTransacao} delTransacao={delTransacao} editarTransacao={editarTransacao} tipoPadrao="gasto" />}
         {tab==="orcamento" && <Orcamento data={data} definirOrcamento={definirOrcamento} />}
         {tab==="metasfin" && <MetasFinanceiras metas={data.metasFinanceiras} saldo={saldo} totalInvestido={totalInvestido} add={addMetaFin} contribuir={contribuir} resgatar={resgatar} excluir={excluirMetaFin} />}
-        {tab==="metasmat" && <MetasMateriais metas={data.metasMateriais} saldo={saldo} add={addMetaMat} contribuir={contribuir} resgatar={resgatar} excluir={excluirMetaMat} pagarParcela={pagarParcela} quitarRestante={quitarRestante} />}
+        {tab==="metasmat" && <MetasMateriais metas={data.metasMateriais} saldo={saldo} transactions={data.transactions} add={addMetaMat} contribuir={contribuir} resgatar={resgatar} excluir={excluirMetaMat} pagarParcela={pagarParcela} quitarRestante={quitarRestante} />}
         {tab==="investimentos" && <Investimentos investimentos={data.investimentos} saldo={saldo} patrimonioTotal={patrimonioTotal} add={addInvestimento} contribuir={contribuir} resgatar={resgatar} excluir={excluirInvestimento} registrarRendimento={registrarRendimento} />}
         {tab==="mensal" && <Mensalidades lista={data.mensalidades} add={addMensal} upd={updMensal} del={delMensal} />}
         {tab==="noticias" && <Noticias />}
         {tab==="config" && <Configuracoes perfis={perfis} perfilAtivo={perfilAtivo} criarPerfil={criarPerfil} renomearPerfil={renomearPerfil} excluirPerfil={excluirPerfil} resetarPerfilAtual={resetarPerfilAtual}
-          exportarBackup={exportarBackup} importarBackup={importarBackup} fileInputRef={fileInputRef} somAtivo={somAtivo} setSomAtivo={setSomAtivo} valoresOcultosState={valoresOcultosState} setValoresOcultosState={setValoresOcultosState} />}
+          exportarBackup={exportarBackup} importarBackup={importarBackup} fileInputRef={fileInputRef} somAtivo={somAtivo} setSomAtivo={setSomAtivo} valoresOcultosState={valoresOcultosState} setValoresOcultosState={setValoresOcultosState} temaClaroState={temaClaroState} setTemaClaroState={setTemaClaroState} />}
       </div>
       <div className="app-footer">📒 Livro-Caixa Pessoal — seu dinheiro, suas regras.</div>
     </div>
     <ToastContainer />
+    {resumoMensalPendente && <ResumoMensalModal resumo={resumoMensalPendente} onFechar={fecharResumoMensal} />}
   </div>;
 }
 
@@ -1086,8 +1268,8 @@ function DistribuicaoBar({saldo,totalReservado,totalInvestido,patrimonioTotal}) 
   </div>;
 }
 function Legenda({cor,label,pct}) {
-  return <div className="row g1" style={{fontSize:11,color:"#9B9480"}}>
-    <span style={{width:7,height:7,borderRadius:"50%",background:cor}} />{label} <span className="mono" style={{color:"#EFEADA"}}>{Math.round(pct)}%</span>
+  return <div className="row g1" style={{fontSize:11,color:"var(--fg-onbg-muted)"}}>
+    <span style={{width:7,height:7,borderRadius:"50%",background:cor}} />{label} <span className="mono" style={{color:"var(--fg-onbg)"}}>{Math.round(pct)}%</span>
   </div>;
 }
 
@@ -1181,7 +1363,7 @@ function PrioridadesPainel({prioridades}) {
         const classe = p.dias<0 ? "priority-atrasada" : p.dias<=5 ? "priority-urgente" : "priority-ok";
         const texto = p.dias<0 ? `atrasada há ${Math.abs(p.dias)} dia(s)` : p.dias===0 ? "vence hoje" : `vence em ${p.dias} dia(s)`;
         return <div key={i} className={"row-between priority-item "+classe}>
-          <span>{p.dias<0?"🔴":p.dias<=5?"🟠":"🟢"} <strong>{p.nome}</strong> <span className="muted">({p.tipo})</span></span>
+          <span className="row g2" style={{alignItems:"center"}}><span style={{width:8,height:8,borderRadius:"50%",background: p.dias<0?"#A13D3D":p.dias<=5?"#B08D3F":"#3A6B54",flexShrink:0}} /><strong>{p.nome}</strong> <span className="muted">({p.tipo})</span></span>
           <span className="mono">{fmt(p.valor)} · {texto}</span>
         </div>;
       })}
@@ -1196,12 +1378,29 @@ function VisaoGeral({data, dadosGrafico, prioridades, evolucaoPatrimonio, totalI
   const [periodoFluxo, setPeriodoFluxo] = useState("6");
   const dadosPatrimonioFiltrado = periodoPatrimonio==="tudo" ? evolucaoPatrimonio : evolucaoPatrimonio.slice(-parseInt(periodoPatrimonio));
   const dadosFluxoFiltrado = periodoFluxo==="tudo" ? dadosGrafico : dadosGrafico.slice(-parseInt(periodoFluxo));
+
+  const mesAtual = hoje().slice(0,7);
+  const mesPassadoD = new Date(); mesPassadoD.setMonth(mesPassadoD.getMonth()-1);
+  const mesPassado = mesPassadoD.toISOString().slice(0,7);
+  const gastoMesAtual = data.transactions.filter(t=>t.type==="gasto"&&t.date.slice(0,7)===mesAtual).reduce((a,t)=>a+t.amount,0);
+  const gastoMesPassado = data.transactions.filter(t=>t.type==="gasto"&&t.date.slice(0,7)===mesPassado).reduce((a,t)=>a+t.amount,0);
+  const variacaoPct = gastoMesPassado>0 ? ((gastoMesAtual-gastoMesPassado)/gastoMesPassado)*100 : null;
+
   return <div className="stack">
     <PrioridadesPainel prioridades={prioridades} />
     <div className="grid2">
       <Card accent="#3A6B54"><div style={{color:"#3A6B54",fontSize:12}}>📈 GANHOS</div><div className="mono" style={{fontSize:21,fontWeight:700}}>{fmt(ganhosTotais)}</div></Card>
       <Card accent="#A13D3D"><div style={{color:"#A13D3D",fontSize:12}}>📉 GASTOS</div><div className="mono" style={{fontSize:21,fontWeight:700}}>{fmt(gastosTotais)}</div></Card>
     </div>
+    {variacaoPct!==null && <Card accent={variacaoPct<=0?"#3A6B54":"#A13D3D"}>
+      <div className="row g2" style={{alignItems:"center"}}>
+        <span style={{fontSize:20}}>{variacaoPct<=0?"📉":"📈"}</span>
+        <div>
+          <div style={{fontSize:13}}>Você gastou <strong style={{color: variacaoPct<=0?"#3A6B54":"#A13D3D"}}>{Math.abs(Math.round(variacaoPct))}% {variacaoPct<=0?"a menos":"a mais"}</strong> que o mês passado.</div>
+          <div className="muted">{fmt(gastoMesAtual)} este mês vs {fmt(gastoMesPassado)} no anterior</div>
+        </div>
+      </div>
+    </Card>}
     {evolucaoPatrimonio && evolucaoPatrimonio.length>1 && <Card>
       <div className="row-between wrap g2" style={{marginBottom:4}}>
         <SectionTitle sub="Reconstruído a partir do seu histórico de lançamentos e rendimentos. Toque num ponto pra ver o valor daquele mês.">Evolução do patrimônio</SectionTitle>
@@ -1231,17 +1430,20 @@ function VisaoGeral({data, dadosGrafico, prioridades, evolucaoPatrimonio, totalI
         })}
       </div>
     </div>}
-    {data.transactions.length===0 && <p className="muted" style={{textAlign:"center",padding:"24px 0"}}>Seu livro-caixa está em branco. Registre um lançamento na aba "Lançamentos" pra começar.</p>}
+    {data.transactions.length===0 && <EmptyState texto='Seu livro-caixa está em branco. Registre um lançamento na aba "Lançamentos" pra começar.' />}
   </div>;
 }
 
-function Lancamentos({data, addTransacao, delTransacao}) {
-  const [form,setForm] = useState({type:"gasto",amount:"",category:CATEGORIAS_GASTO[0],desc:"",date:hoje()});
+function Lancamentos({data, addTransacao, delTransacao, editarTransacao, tipoPadrao}) {
+  const [form,setForm] = useState({type:tipoPadrao||"gasto",amount:"",category:(tipoPadrao==="ganho"?CATEGORIAS_GANHO:CATEGORIAS_GASTO)[0],desc:"",date:hoje()});
   const [filtro,setFiltro] = useState("todos");
   const [filtroCategoria,setFiltroCategoria] = useState("todas");
+  const [busca,setBusca] = useState("");
   const [anexo, setAnexo] = useState(null);
   const [anexoPreview, setAnexoPreview] = useState(null);
   const [verFoto, setVerFoto] = useState(null);
+  const [editandoId, setEditandoId] = useState(null);
+  const [editForm, setEditForm] = useState({});
   const fileRef = useRef(null);
   const categoriasAtuais = form.type==="gasto"?CATEGORIAS_GASTO:CATEGORIAS_GANHO;
 
@@ -1267,7 +1469,21 @@ function Lancamentos({data, addTransacao, delTransacao}) {
     toast(true,"Lançamento registrado.");
   };
 
-  const lista = data.transactions.filter(t=>(filtro==="todos"||t.type===filtro) && (filtroCategoria==="todas"||t.category===filtroCategoria)).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const repetir = (t) => { addTransacao({type:t.category&&CATEGORIAS_GANHO.includes(t.category)?"ganho":t.type, amount:t.amount, category:t.category, desc:t.desc, date:hoje()}); toast(true,`Repetido: ${t.desc||t.category} — ${fmt(t.amount)} hoje.`); };
+  const iniciarEdicao = (t) => { setEditandoId(t.id); setEditForm({type:t.type, amount:String(t.amount), category:t.category, desc:t.desc||"", date:t.date}); };
+  const salvarEdicao = (id) => {
+    const valor = parseFloat(editForm.amount);
+    if (isNaN(valor) || valor<=0) { toast(false,"Valor inválido."); return; }
+    editarTransacao(id, {type:editForm.type, amount:valor, category:editForm.category, desc:editForm.desc, date:editForm.date});
+    setEditandoId(null);
+    toast(true,"Lançamento atualizado.");
+  };
+
+  const lista = data.transactions.filter(t=>
+    (filtro==="todos"||t.type===filtro) &&
+    (filtroCategoria==="todas"||t.category===filtroCategoria) &&
+    (!busca.trim() || (t.desc||"").toLowerCase().includes(busca.toLowerCase()) || t.category.toLowerCase().includes(busca.toLowerCase()))
+  ).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
   const categoriasComGasto = [...new Set(data.transactions.map(t=>t.category))].sort();
   const totalFiltrado = lista.reduce((a,t)=>a+t.amount,0);
 
@@ -1286,9 +1502,9 @@ function Lancamentos({data, addTransacao, delTransacao}) {
       </div>
       <input className="wfull" style={{marginBottom:8}} placeholder="Descrição (opcional)" value={form.desc} onChange={e=>setForm({...form,desc:e.target.value})} onKeyDown={e=>e.key==="Enter"&&submit()} />
       <div className="row g2" style={{marginBottom:8}}>
-        <button className="btn-ghost" onClick={()=>fileRef.current.click()}>📎 {anexoPreview? "Trocar foto" : "Anexar comprovante"}</button>
+        <button className="btn-ghost row g1" style={{alignItems:"center"}} onClick={()=>fileRef.current.click()}><Icone tipo="clipe" size={14} /> {anexoPreview? "Trocar foto" : "Anexar comprovante"}</button>
         {anexoPreview && <img src={anexoPreview} style={{height:38,width:38,borderRadius:8,objectFit:"cover"}} />}
-        {anexoPreview && <IconBtn onClick={()=>{setAnexo(null);setAnexoPreview(null);}} title="Remover foto">✖️</IconBtn>}
+        {anexoPreview && <IconBtn onClick={()=>{setAnexo(null);setAnexoPreview(null);}} title="Remover foto"><Icone tipo="fechar" /></IconBtn>}
         <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={escolherArquivo} />
       </div>
       <div className="row g2"><input className="flex1" type="date" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} /><button className="btn-primary" onClick={submit}>Registrar</button></div>
@@ -1306,9 +1522,12 @@ function Lancamentos({data, addTransacao, delTransacao}) {
           </select>
         </div>
       </div>
-      {filtroCategoria!=="todas" && <p className="muted" style={{textAlign:"right",marginBottom:6}}>Total em <strong>{filtroCategoria}</strong>: <span className="mono" style={{color:"#EFEADA"}}>{fmt(totalFiltrado)}</span></p>}
+      <div className="row g2" style={{marginBottom:8}}>
+        <input className="flex1" placeholder="Buscar por descrição ou categoria…" value={busca} onChange={e=>setBusca(e.target.value)} style={{fontSize:13,padding:"7px 12px"}} />
+      </div>
+      {filtroCategoria!=="todas" && <p className="muted" style={{textAlign:"right",marginBottom:6,color:"var(--fg-onbg-muted)"}}>Total em <strong>{filtroCategoria}</strong>: <span className="mono" style={{color:"var(--fg-onbg)"}}>{fmt(totalFiltrado)}</span></p>}
       <Card style={{padding:8}}>
-        {lista.length===0 && <p className="muted" style={{padding:12}}>Nenhum lançamento ainda.</p>}
+        {lista.length===0 && <EmptyState texto="Nenhum lançamento encontrado." />}
         {agruparPorData(lista).map(grupo=>{
           const saldoDia = grupo.itens.reduce((a,t)=>a+(t.type==="ganho"?t.amount:-t.amount),0);
           return <div key={grupo.data}>
@@ -1316,15 +1535,44 @@ function Lancamentos({data, addTransacao, delTransacao}) {
               <span style={{fontSize:11,fontWeight:700,color:"#7A7460",textTransform:"uppercase",letterSpacing:.6}}>{formatarDataExtrato(grupo.data)}</span>
               <span className="mono" style={{fontSize:11,fontWeight:700,color: saldoDia>=0?"#3A6B54":"#A13D3D"}}>{saldoDia>=0?"+":""}{fmt(saldoDia)}</span>
             </div>
-            {grupo.itens.map(t=>(
-              <div key={t.id} className="row g3" style={{padding:"8px",borderBottom:"1px solid rgba(16,24,32,.06)"}}>
-                <div style={{background: t.type==="ganho"?"rgba(58,107,84,.14)":"rgba(161,61,61,.14)", padding:6, borderRadius:6}}>{EMOJI_CATEGORIA[t.category]||"•"}</div>
-                <div className="flex1" style={{minWidth:0}}><div style={{fontSize:13,fontWeight:500}}>{t.desc||t.category}</div><div className="muted">{t.category}</div></div>
-                {t.anexo && <img src={t.anexo} onClick={()=>setVerFoto(t.anexo)} title="Ver comprovante" style={{width:30,height:30,borderRadius:6,objectFit:"cover",cursor:"pointer"}} />}
-                <div className="mono" style={{fontSize:13,fontWeight:700,color: t.type==="ganho"?"#3A6B54":"#A13D3D"}}>{t.type==="ganho"?"+":"−"}{fmt(t.amount)}</div>
-                <IconBtn onClick={()=>delTransacao(t.id)} title="Excluir">🗑️</IconBtn>
-              </div>
-            ))}
+            {grupo.itens.map(t=>{
+              if (editandoId===t.id) {
+                return <div key={t.id} style={{padding:10,borderBottom:"1px solid rgba(16,24,32,.06)"}}>
+                  <div className="row g2" style={{marginBottom:6}}>
+                    {["gasto","ganho"].map(tp=>(
+                      <button key={tp} className="flex1" style={{fontSize:12,background: editForm.type===tp?(tp==="gasto"?"#A13D3D":"#3A6B54"):"rgba(16,24,32,.06)", color: editForm.type===tp?"#fff":"#101820"}} onClick={()=>setEditForm({...editForm,type:tp})}>{tp==="gasto"?"Gasto":"Ganho"}</button>
+                    ))}
+                  </div>
+                  <div className="grid2" style={{marginBottom:6}}>
+                    <input type="number" placeholder="Valor" value={editForm.amount} onChange={e=>setEditForm({...editForm,amount:e.target.value})} />
+                    <select value={editForm.category} onChange={e=>setEditForm({...editForm,category:e.target.value})}>{(editForm.type==="gasto"?CATEGORIAS_GASTO:CATEGORIAS_GANHO).map(c=><option key={c} value={c}>{c}</option>)}</select>
+                  </div>
+                  <input className="wfull" style={{marginBottom:6}} placeholder="Descrição" value={editForm.desc} onChange={e=>setEditForm({...editForm,desc:e.target.value})} />
+                  <input className="wfull" style={{marginBottom:8}} type="date" value={editForm.date} onChange={e=>setEditForm({...editForm,date:e.target.value})} />
+                  <div className="row g2">
+                    <button className="btn-success flex1" onClick={()=>salvarEdicao(t.id)}>Salvar</button>
+                    <button className="btn-ghost" onClick={()=>setEditandoId(null)}>Cancelar</button>
+                  </div>
+                </div>;
+              }
+              return <SwipeableRow key={t.id} acoes={[
+                <IconBtn onClick={()=>repetir(t)} title="Repetir hoje"><Icone tipo="repetir" /></IconBtn>,
+                <IconBtn onClick={()=>iniciarEdicao(t)} title="Editar"><Icone tipo="lapis" /></IconBtn>,
+                <IconBtn onClick={()=>delTransacao(t.id)} title="Excluir"><Icone tipo="lixeira" /></IconBtn>,
+              ]}>
+                <div className="row g3" style={{padding:"8px",borderBottom:"1px solid rgba(16,24,32,.06)"}}>
+                  <div style={{background: t.type==="ganho"?"rgba(58,107,84,.14)":"rgba(161,61,61,.14)", padding:6, borderRadius:6}}>{EMOJI_CATEGORIA[t.category]||"•"}</div>
+                  <div className="flex1" style={{minWidth:0}}><div style={{fontSize:13,fontWeight:500}}>{t.desc||t.category}</div><div className="muted">{t.category}</div></div>
+                  {t.anexo && <img src={t.anexo} onClick={()=>setVerFoto(t.anexo)} title="Ver comprovante" style={{width:30,height:30,borderRadius:6,objectFit:"cover",cursor:"pointer"}} />}
+                  <div className="mono" style={{fontSize:13,fontWeight:700,color: t.type==="ganho"?"#3A6B54":"#A13D3D"}}>{t.type==="ganho"?"+":"−"}{fmt(t.amount)}</div>
+                  <div className="row g1 acoes-inline-desktop">
+                    <IconBtn onClick={()=>repetir(t)} title="Repetir hoje"><Icone tipo="repetir" /></IconBtn>
+                    <IconBtn onClick={()=>iniciarEdicao(t)} title="Editar"><Icone tipo="lapis" /></IconBtn>
+                    <IconBtn onClick={()=>delTransacao(t.id)} title="Excluir"><Icone tipo="lixeira" /></IconBtn>
+                  </div>
+                </div>
+              </SwipeableRow>;
+            })}
           </div>;
         })}
       </Card>
@@ -1355,7 +1603,7 @@ function MetasFinanceiras({metas, saldo, totalInvestido, add, contribuir, resgat
       </div>
       <button className="btn-primary wfull" onClick={submit}>Criar</button>
     </Card>
-    {metas.length===0 && <p className="muted" style={{textAlign:"center"}}>Nenhuma meta financeira criada ainda.</p>}
+    {metas.length===0 && <EmptyState texto="Nenhuma meta financeira criada ainda." />}
     <div className="stack-sm">
       {metas.map(m=>{
         const atual = m.linkedToInvestments ? totalInvestido : m.saved;
@@ -1367,7 +1615,7 @@ function MetasFinanceiras({metas, saldo, totalInvestido, add, contribuir, resgat
               <div className="row g2"><span style={{fontWeight:600,fontSize:15}}>{m.name}</span>{m.linkedToInvestments && <span style={{fontSize:10,background:"rgba(90,143,191,.15)",color:"#5A8FBF",padding:"2px 6px",borderRadius:4}}>INVESTIMENTOS</span>}</div>
               {m.deadline && <div className="muted">até {new Date(m.deadline+"T00:00").toLocaleDateString("pt-BR")}</div>}
             </div>
-            <IconBtn onClick={()=>excluir(m)} title="Excluir">🗑️</IconBtn>
+            <IconBtn onClick={()=>excluir(m)} title="Excluir"><Icone tipo="lixeira" /></IconBtn>
           </div>
           <div className="row-between mono" style={{fontSize:12,marginBottom:4}}><span>{fmt(atual)} / {fmt(m.target)}</span><PercentTag value={pct} color="#B08D3F" /></div>
           <Progress value={atual} max={m.target} color="#B08D3F" />
@@ -1379,7 +1627,7 @@ function MetasFinanceiras({metas, saldo, totalInvestido, add, contribuir, resgat
   </div>;
 }
 
-function MetasMateriais({metas, saldo, add, contribuir, resgatar, excluir, pagarParcela, quitarRestante}) {
+function MetasMateriais({metas, saldo, transactions, add, contribuir, resgatar, excluir, pagarParcela, quitarRestante}) {
   const [form,setForm] = useState({name:"",price:"",priority:"media",mode:"avista",installments:"3",dueDay:"10"});
   const corPrioridade = {alta:"#A13D3D",media:"#B08D3F",baixa:"#7A7460"};
   const submit = () => {
@@ -1409,7 +1657,7 @@ function MetasMateriais({metas, saldo, add, contribuir, resgatar, excluir, pagar
       </div>}
       <button className="btn-primary wfull" onClick={submit}>Criar</button>
     </Card>
-    {metas.length===0 && <p className="muted" style={{textAlign:"center"}}>Sua lista de desejos está vazia.</p>}
+    {metas.length===0 && <EmptyState texto="Sua lista de desejos está vazia." />}
     <div className="stack-sm">
       {[...metas].sort((a,b)=>(a.saved>=a.price)-(b.saved>=b.price)).map(m=>{
         const done = m.saved>=m.price; const parcelado = m.mode==="parcelado"; const pct=(m.saved/m.price)*100;
@@ -1417,13 +1665,24 @@ function MetasMateriais({metas, saldo, add, contribuir, resgatar, excluir, pagar
           {done && <Stamp text={parcelado?"QUITADO":"CONQUISTADO"} />}
           <div className="row-between" style={{marginBottom:6}}>
             <div className="row g2"><span style={{width:8,height:8,borderRadius:"50%",background:corPrioridade[m.priority]}} /><span style={{fontWeight:600,fontSize:15}}>{m.name}</span>{parcelado && <span style={{fontSize:10,background:"rgba(16,24,32,.08)",padding:"2px 6px",borderRadius:4,color:"#7A7460"}}>PARCELADO</span>}</div>
-            <IconBtn onClick={()=>excluir(m)} title="Excluir">🗑️</IconBtn>
+            <IconBtn onClick={()=>excluir(m)} title="Excluir"><Icone tipo="lixeira" /></IconBtn>
           </div>
           <div className="row-between mono" style={{fontSize:12,marginBottom:4}}>
             <span>{fmt(m.saved)} / {fmt(m.price)}{parcelado && ` · parcela ${m.installmentsPaid}/${m.installments}`}</span>
             <PercentTag value={pct} color={corPrioridade[m.priority]} />
           </div>
           <Progress value={m.saved} max={m.price} color={corPrioridade[m.priority]} />
+          {!done && !parcelado && (() => {
+            const relacionadas = (transactions||[]).filter(t=>t.category==="Reserva de meta material" && t.desc===`Reserva: ${m.name}`);
+            if (!relacionadas.length || m.saved<=0) return null;
+            const primeira = new Date([...relacionadas].sort((a,b)=>a.date.localeCompare(b.date))[0].date+"T00:00:00");
+            const hojeD = new Date();
+            const mesesDecorridos = Math.max(1,(hojeD.getFullYear()-primeira.getFullYear())*12+(hojeD.getMonth()-primeira.getMonth())+1);
+            const mediaMensal = m.saved/mesesDecorridos;
+            if (mediaMensal<=0) return null;
+            const mesesRestantes = Math.ceil((m.price-m.saved)/mediaMensal);
+            return <p className="muted" style={{marginTop:8}}>⏱️ No ritmo atual (~{fmt(mediaMensal)}/mês), faltam <strong style={{color:"#101820"}}>~{mesesRestantes} mês{mesesRestantes===1?"":"es"}</strong>.</p>;
+          })()}
           {!done && !parcelado && <AporteBox item={m} atual={m.saved} saldo={saldo} tipo="material" contribuir={contribuir} resgatar={resgatar} />}
           {!done && parcelado && <div className="row g2" style={{marginTop:12}}>
             <button className="btn-success flex1" onClick={()=>pagarParcela(m)}>Pagar parcela {m.installmentsPaid+1}/{m.installments} · {fmt(valorProximaParcela(m))}</button>
@@ -1448,8 +1707,8 @@ function Investimentos({investimentos, saldo, patrimonioTotal, add, contribuir, 
         <button className="btn-primary" onClick={submit}>Criar</button>
       </div>
     </Card>
-    {investimentos.length===0 && <p className="muted" style={{textAlign:"center"}}>Nenhum investimento cadastrado ainda.</p>}
-    {investimentos.length>0 && <div className="row-between"><SectionTitle light>Suas posições</SectionTitle><span className="mono" style={{color:"#EFEADA",fontSize:14}}>{fmt(total)}</span></div>}
+    {investimentos.length===0 && <EmptyState texto="Nenhum investimento cadastrado ainda." />}
+    {investimentos.length>0 && <div className="row-between"><SectionTitle light>Suas posições</SectionTitle><span className="mono" style={{color:"var(--fg-onbg)",fontSize:14}}>{fmt(total)}</span></div>}
     <div className="stack-sm">
       {investimentos.map(inv=>{
         const pct = patrimonioTotal>0 ? (inv.amount/patrimonioTotal)*100 : 0;
@@ -1459,7 +1718,7 @@ function Investimentos({investimentos, saldo, patrimonioTotal, add, contribuir, 
               <div style={{background:"rgba(90,143,191,.15)",padding:6,borderRadius:6}}>{EMOJI_INVESTIMENTO[inv.type]||"•"}</div>
               <div><div style={{fontWeight:600,fontSize:15}}>{inv.name}</div><div className="muted">{inv.type}</div></div>
             </div>
-            <IconBtn onClick={()=>excluir(inv)} title="Excluir">🗑️</IconBtn>
+            <IconBtn onClick={()=>excluir(inv)} title="Excluir"><Icone tipo="lixeira" /></IconBtn>
           </div>
           <div className="row-between" style={{marginBottom:4}}>
             <span className="mono" style={{fontSize:16,fontWeight:700}}>{fmt(inv.amount)}</span>
@@ -1525,7 +1784,7 @@ function Orcamento({data, definirOrcamento}) {
             <div className="row g2" style={{marginTop:8}}>
               <input type="number" placeholder={limite?`Alterar limite (atual ${fmt(limite)})`:"Definir limite mensal"} value={edicoes[cat]||""} onChange={e=>setEdicoes({...edicoes,[cat]:e.target.value})} className="flex1" style={{padding:"6px 10px"}} />
               <button className="btn-ghost" style={{fontSize:12,padding:"6px 10px"}} onClick={()=>salvar(cat)}>Salvar</button>
-              {limite ? <IconBtn onClick={()=>remover(cat)} title="Remover limite">🗑️</IconBtn> : null}
+              {limite ? <IconBtn onClick={()=>remover(cat)} title="Remover limite"><Icone tipo="lixeira" /></IconBtn> : null}
             </div>
           </div>;
         })}
@@ -1566,8 +1825,8 @@ function Mensalidades({lista, add, upd, del}) {
         <button className="btn-primary" onClick={submit}>Criar</button>
       </div>
     </Card>
-    <div className="row-between"><SectionTitle light>Recorrentes ativas</SectionTitle><span className="mono" style={{color:"#EFEADA",fontSize:14}}>{fmt(total)}/mês</span></div>
-    {lista.length===0 && <p className="muted" style={{textAlign:"center"}}>Nenhuma mensalidade cadastrada.</p>}
+    <div className="row-between"><SectionTitle light>Recorrentes ativas</SectionTitle><span className="mono" style={{color:"var(--fg-onbg)",fontSize:14}}>{fmt(total)}/mês</span></div>
+    {lista.length===0 && <EmptyState texto="Nenhuma mensalidade cadastrada." />}
     <Card style={{padding:8}}>
       {[...lista].sort((a,b)=>a.dueDay-b.dueDay).map(m=>{
         if (editandoId===m.id) {
@@ -1588,9 +1847,9 @@ function Mensalidades({lista, add, upd, del}) {
           <div style={{background:"rgba(176,141,63,.15)",padding:6,borderRadius:6,minWidth:34,textAlign:"center"}}><span className="mono" style={{fontSize:11,color:"#B08D3F",fontWeight:700}}>D{m.dueDay}</span></div>
           <div className="flex1"><div style={{fontSize:13,fontWeight:500}}>{m.name}</div><div className="muted">{m.category}</div></div>
           <div className="mono" style={{fontSize:13,fontWeight:700}}>{fmt(m.amount)}</div>
-          <IconBtn onClick={()=>iniciarEdicao(m)} title="Editar">✏️</IconBtn>
-          <button className="icon-btn" onClick={()=>upd(m.id,{active:!m.active})} title={m.active?"Pausar":"Reativar"}>{m.active?"✅":"❌"}</button>
-          <IconBtn onClick={()=>del(m.id)} title="Excluir">🗑️</IconBtn>
+          <IconBtn onClick={()=>iniciarEdicao(m)} title="Editar"><Icone tipo="lapis" /></IconBtn>
+          <button className="icon-btn" onClick={()=>upd(m.id,{active:!m.active})} title={m.active?"Pausar":"Reativar"} style={{color: m.active?"#3A6B54":"#A13D3D", opacity:1}}><Icone tipo={m.active?"check":"x"} /></button>
+          <IconBtn onClick={()=>del(m.id)} title="Excluir"><Icone tipo="lixeira" /></IconBtn>
         </div>;
       })}
     </Card>
@@ -1691,7 +1950,7 @@ function Consultor({data, saldo, totalReservado, totalInvestido, patrimonioTotal
       <p className="muted" style={{marginBottom:10}}>{config.apiKey ? "Modo IA real ativado (configurado em Configurações)." : "Modo automático (sem custo) — analisa seus próprios números. Você pode ativar uma IA de verdade em Configurações."}</p>
       <div className="chat-box" ref={boxRef}>
         {mensagens.map((m,i)=>(<div key={i} className={"chat-msg "+(m.autor==="ia"?"chat-ia":"chat-user")}>{m.texto}</div>))}
-        {carregando && <div className="chat-msg chat-ia"><span className="spin">⏳</span> pensando…</div>}
+        {carregando && <div className="chat-msg chat-ia"><Icone tipo="carregando" size={13} /> pensando…</div>}
       </div>
       <div className="row g2" style={{marginTop:12}}>
         <input className="flex1" value={texto} placeholder="Fale com seu consultor…" onChange={e=>setTexto(e.target.value)} onKeyDown={e=>e.key==="Enter"&&enviar()} />
@@ -1779,7 +2038,7 @@ function Noticias(){
         <SectionTitle sub="Manchetes de economia, direto das fontes.">📰 Notícias do mercado</SectionTitle>
         <button className="btn-ghost" style={{fontSize:12}} onClick={()=>carregar(true)}>🔄 Atualizar</button>
       </div>
-      {carregando && <p className="muted"><span className="spin">⏳</span> Buscando notícias…</p>}
+      {carregando && <p className="muted row g1" style={{alignItems:"center"}}><Icone tipo="carregando" size={13} /> Buscando notícias…</p>}
       {!carregando && erro && <div>
         <p className="muted" style={{marginBottom:8}}>Não consegui buscar as notícias agora. Aqui vão links diretos:</p>
         <div className="stack-sm">{LINKS_CURADOS.map(l=>(<a key={l.url} href={l.url} target="_blank" rel="noopener" className="news-link row-between">{l.nome} <span>↗</span></a>))}</div>
@@ -1796,7 +2055,7 @@ function Noticias(){
 }
 
 /* ===================== Configurações ===================== */
-function Configuracoes({perfis, perfilAtivo, criarPerfil, renomearPerfil, excluirPerfil, resetarPerfilAtual, exportarBackup, importarBackup, fileInputRef, somAtivo, setSomAtivo, valoresOcultosState, setValoresOcultosState}) {
+function Configuracoes({perfis, perfilAtivo, criarPerfil, renomearPerfil, excluirPerfil, resetarPerfilAtual, exportarBackup, importarBackup, fileInputRef, somAtivo, setSomAtivo, valoresOcultosState, setValoresOcultosState, temaClaroState, setTemaClaroState}) {
   const [config, setConfigState] = useState(()=>lerConfig());
   const [nomeNovo, setNomeNovo] = useState("");
   const [editandoId, setEditandoId] = useState(null);
@@ -1831,9 +2090,9 @@ function Configuracoes({perfis, perfilAtivo, criarPerfil, renomearPerfil, exclui
             {editandoId===p.id ? (
               <button className="btn-success" style={{fontSize:12}} onClick={()=>{ renomearPerfil(p.id,nomeEdit); setEditandoId(null); }}>Salvar</button>
             ) : (
-              <button className="icon-btn" onClick={()=>{ setEditandoId(p.id); setNomeEdit(p.name); }}>✏️</button>
+              <button className="icon-btn" onClick={()=>{ setEditandoId(p.id); setNomeEdit(p.name); }}><Icone tipo="lapis" /></button>
             )}
-            {perfis.length>1 && <button className="icon-btn" onClick={()=>excluirPerfil(p.id)}>🗑️</button>}
+            {perfis.length>1 && <button className="icon-btn" onClick={()=>excluirPerfil(p.id)}><Icone tipo="lixeira" /></button>}
           </div>
         ))}
       </div>
@@ -1849,6 +2108,7 @@ function Configuracoes({perfis, perfilAtivo, criarPerfil, renomearPerfil, exclui
       <div className="stack-sm">
         <button className="btn-ghost wfull" onClick={()=>setSomAtivo(alternarSom())}>{somAtivo?"🔊 Som ligado":"🔇 Som desligado"}</button>
         <button className="btn-ghost wfull" onClick={()=>setValoresOcultosState(alternarVisibilidadeValores())}>{valoresOcultosState?"🙈 Valores ocultos":"👁️ Valores visíveis"}</button>
+        <button className="btn-ghost wfull row g2" style={{justifyContent:"center"}} onClick={()=>setTemaClaroState(alternarTema())}><Icone tipo={temaClaroState?"sol":"lua"} size={15} /> {temaClaroState?"Tema claro":"Tema escuro"}</button>
       </div>
     </Card>
 
